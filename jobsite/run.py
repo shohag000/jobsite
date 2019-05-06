@@ -3,10 +3,11 @@ from flask import Flask,Blueprint
 #from user.views import user_app
 from extensions import db
 from flask_restful import Resource, Api
+from settings import SECRET_KEY
 
 #new import
 from job.views import Alljob,CreateJob,Edit_or_Delete
-from user.views import CreateUser,Get_login
+from user.views import CreateUser,Get_login,Hello,Get_logout
 
 
 #new code
@@ -23,11 +24,13 @@ api.add_resource(Edit_or_Delete,"/editOrDelete")
 
 api_user.add_resource(CreateUser,"/create")
 api_user.add_resource(Get_login,"/login")
+api_user.add_resource(Get_logout,"/logout")
+api_user.add_resource(Hello,"/hello")
 
 app = Flask(__name__)
 
 
-app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
+app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
 

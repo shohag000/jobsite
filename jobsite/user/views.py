@@ -2,11 +2,15 @@ from flask import Blueprint
 from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import User
+from .models import User,BlacklistToken
 from extensions import db
 from flask_restful import Resource, Api
 import jwt
 import datetime
+import json
+from json import JSONDecoder
+from settings import SECRET_KEY
+from decorator import token_required
 
 
 # Create new user 
@@ -28,26 +32,81 @@ class CreateUser(Resource):
 
 
 # Login
-
 class Get_login(Resource):
+   """
+   User Login Resource
+   """
    def post(self):
-      auth = request.authorization 
+        # get the post data 
+        post_data = request.get_json()
+        try:
+            # fetch the user data
+            user = User.query.filter_by(
+                username=post_data.get('username')
+              ).first()
+            auth_token = user.encode_auth_token(user.id)
+            if auth_token:
+               responseObject = {
+                    'status': 'success',
+                    'message': 'Successfully logged in.',
+                    'auth_token': auth_token.decode('UTF-8')
+               }
+               print(auth_token)
+               return jsonify(responseObject)
+               #return make_response(jsonify(responseObject)), 200
+               #return ("hey in try")
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return jsonify(responseObject)
+            #return make_response(jsonify(responseObject)), 500
+            #return ("hey in except")
 
-      if not auth or auth.username or not auth.password:
-         print("in first")
-         return make_response("Could not verify",401,{"WWW-Authenticate" : 'Basic realm="Login required!"'})
+
+# Logout
+class Get_logout(Resource):
+   # Logout user
+   @token_required 
+   def post(self):
+      # get the post data
+      user= User.decode_auth_token(request)
+      token = request.headers["token"]
+      print (user)
+      if isinstance(user.id,int):
+         blacklist_token = BlacklistToken(token=token)
+         try:
+            # insert the token
+            db.session.add(blacklist_token)
+            db.session.commit()
+            responseObject = {
+               'status': 'success',
+               'message': 'Successfully logged out.'
+            }
+            return jsonify(responseObject)
+         except Exception as e:
+            responseObject = {
+               'status': 'fail',
+               'message': e
+            }
+            return jsonify(responseObject)
+      else:
+         responseObject = {
+               'status': 'fail',
+               'message': 'Something is wrong.'
+         }
+         return jsonify(responseObject)
+
       
-      user = User.query.filter_by(username=auth.username).first()
 
-      if not user:
-         print("in second")
-         return make_response("Could not verify",401,{"WWW-Authenticate" : 'Basic realm="Login required!"'})
-
-      if check_password_hash(user.password,auth.password):
-         print("in third")
-         token = jwt.encode({"username" : user.username, "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=15)},app.config['SECRET_KEY'])
-
-         return jsonify({"token" : token.decode("UTF-8")})
-      print("in last")
-      return make_response("Could not verify",401,{"WWW-Authenticate" : 'Basic realm="Login required!"'})
-      
+# hello world
+class Hello(Resource):
+   @token_required
+   def post(self):
+      user= User.decode_auth_token(request)
+      print(user)
+      print("hello")
+      return ("hello from Hello class after token check")
+               
