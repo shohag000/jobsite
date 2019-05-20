@@ -42,9 +42,11 @@ class Get_login(Resource):
         try:
             # fetch the user data
             user = User.query.filter_by(
-                username=post_data.get('username')
+                email=post_data.get('email')
               ).first()
-            auth_token = user.encode_auth_token(user.id)
+
+            if user and check_password_hash(user.password, post_data.get('password')):
+                auth_token = user.encode_auth_token(user.id)
             if auth_token:
                responseObject = {
                     'status': 'success',

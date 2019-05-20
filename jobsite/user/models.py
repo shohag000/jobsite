@@ -1,10 +1,13 @@
-from sqlalchemy import Column, desc
+from sqlalchemy import Column, desc,Integer,ForeignKey
+from sqlalchemy.orm import relationship
 from utils import get_current_time,STRING_LEN
 from extensions import db
 import datetime
 import jwt
 from settings import SECRET_KEY
 from flask import jsonify
+from employee.models import Employee
+from company.models import Company
 
 
 class User(db.Model):
@@ -16,6 +19,8 @@ class User(db.Model):
     email = db.Column(db.String(50),unique=True,nullable=False)
     password = db.Column(db.String(50),nullable=False)
     employer = db.Column(db.Boolean,default=False)
+    employee = db.relationship("Employee", uselist=False, backref="employee_user")
+    company = db.relationship("Company", uselist=False, backref="company_user")
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -27,7 +32,7 @@ class User(db.Model):
     def encode_auth_token(self, user_id):
         try:
             payload = {
-               'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=15),
+               'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=30),
                'iat': datetime.datetime.utcnow(),
                'sub': user_id
             }
