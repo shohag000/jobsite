@@ -10,10 +10,9 @@ def token_required(f):
 
       token = None
 
-      token = request.headers['token']
-      print(token)
-
-      if not token:
+      try:
+         token = request.headers['token']
+      except:
          return jsonify({"message" : 'token is missing'})
 
       is_black_listed = User.check_blacklist(token)

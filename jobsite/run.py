@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 #new import
 from job.views import Alljob,CreateJob,Edit_or_Delete,ApplyJob,SearchJob,GetSingleJob
-from user.views import CreateUser,Get_login,Hello,Get_logout
+from user.views import CreateUser,Get_login,Hello,Get_logout,CheckUserType
 from employee.views import Allemployee
 from company.views import Allcompany,CreateCompany
 
@@ -37,6 +37,7 @@ api_user.add_resource(CreateUser,"/create")
 api_user.add_resource(Get_login,"/login")
 api_user.add_resource(Get_logout,"/logout")
 api_user.add_resource(Hello,"/hello")
+api_user.add_resource(CheckUserType,"/check")
 
 
 api_employee.add_resource(Allemployee,"/employees")

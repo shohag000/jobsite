@@ -64,8 +64,17 @@ class Get_login(Resource):
                 'message': 'Try again'
             }
             return jsonify(responseObject)
-            #return make_response(jsonify(responseObject)), 500
-            #return ("hey in except")
+
+
+# Check user type
+class CheckUserType(Resource):
+    @token_required
+    def get(self):
+        user = User.decode_auth_token(request)
+        if user.employer:
+            return jsonify({"is_employer": True})
+        else:
+            return jsonify({"is_employer": False})
 
 
 # Logout
@@ -111,4 +120,3 @@ class Hello(Resource):
       print(user)
       print("hello")
       return ("hello from Hello class after token check")
-               
